@@ -13,7 +13,7 @@ volatile uint8_t FLAGS = 0;
                   
 const uint8_t inputPins[MAX_BUTTONS] = {14,15,16};    // these all support pin change interrupt on leonardo
 unsigned long lastDebounceTime[MAX_BUTTONS] = {0,0,0};  //used to debounce buttons. last time pin output toggled
-unsigned short debounceDelay = 25;
+unsigned short debounceDelay = 20;
 
 // Interrupt service routines (attached to pin change interrupt) Separated to rising and falling
 void ISR_toggleButtonF () {FLAGS |= 1 << 0;}
@@ -21,25 +21,13 @@ void ISR_incButtonF ()    {FLAGS |= 1 << 1;}
 void ISR_decButtonF ()    {FLAGS |= 1 << 2;}
 void (*ISRFunctionsF[MAX_BUTTONS])() = {ISR_toggleButtonF, ISR_incButtonF, ISR_decButtonF};
 
-//void ISR_toggleButtonR() {FLAGS |= 1 << 4;}
-//void ISR_incButtonR ()    {FLAGS |= 1 << 5;}
-//void ISR_decButtonR ()    {FLAGS |= 1 << 6;}
-//void (*ISRFunctionsR[MAX_BUTTONS])() = {ISR_toggleButtonR, ISR_incButtonR, ISR_decButtonR};
+void ISR_toggleButtonR() {FLAGS |= 1 << 4;}
+void ISR_incButtonR ()    {FLAGS |= 1 << 5;}
+void ISR_decButtonR ()    {FLAGS |= 1 << 6;}
+void (*ISRFunctionsR[MAX_BUTTONS])() = {ISR_toggleButtonR, ISR_incButtonR, ISR_decButtonR};
 
 // Code to be called when buttons pressed
-void toggleButton()
-  {Serial.print("Toggle button Pressed");}
-void incButton()
-  {Serial.print("Inc button Pressed");}
-void decButton()
-  {Serial.print("Dec button Pressed");}
-void (*buttonFunction[MAX_BUTTONS])() = {toggleButton, incButton, decButton};   //order matters!
 
-//alternative w. double click support
-//void toggleButton(uint8_t clickType)
-//{
-//  // clickType 0 = normal, 1 = double, 2 = hold. 
-//}
 
 void setupUI()
 {
@@ -48,7 +36,7 @@ void setupUI()
     pinMode(inputPins[i], INPUT_PULLUP);
   // Setup interrupts for each buttons
     attachPinChangeInterrupt(digitalPinToPCINT(inputPins[i]), ISRFunctionsF[i], FALLING);
-//    attachPinChangeInterrupt(digitalPinToPCINT(inputPins[i]), ISRFunctionsR[i], RISING);
+    attachPinChangeInterrupt(digitalPinToPCINT(inputPins[i]), ISRFunctionsR[i], RISING);
   }  
 }
 
@@ -68,10 +56,11 @@ void handleUI()
       if ( ((FLAGS >> i) & 1) and (millis() - lastDebounceTime[i] > debounceDelay) )
       {
         lastDebounceTime[i] = millis();
-        buttonFunction[i]();
-        
+        Serial.print("Button [");
+        Serial.print(i);
+        Serial.println("] pressed.");
         //clear rising flag
-        FLAGS &= !((FLAGS >> i) & 1);
+        FLAGS &= !((FLAGS >> 0) & 1);
       }
     }
 //    if ( ((FLAGS >> 0) & 1) and lastDebounceTime[0])
@@ -98,89 +87,23 @@ void handleUI()
   
 }
 
-//class UI
-//{
-//  // Implementing multi-click (adapated from salsaman)
-//  
-//  // Timing values
-//  uint8_t debounce = 20;
-//  uint16_t DClength = 250;
-//  uint16_t holdTime = 1000;
-//
-//  // Button state
-//  boolean buttonVal[MAX_BUTTONS] = HIGH;  // start with pullup
-//  boolean buttonLast[MAX_BUTTONS] = HIGH; 
-//  boolean DCwaiting[MAX_BUTTONS] = false; //waiting for double click
-//  boolean singleOK[MAX_BUTTONS] = true;
-//  long downTime[MAX_BUTTONS] = -1;
-//  long upTime[MAX_BUTTONS] = -1;
-//  
-//};
-//
-//int UI::checkButton() {    
-//   int event = 0;
-//   buttonVal = digitalRead(buttonPin);
-//   // Button pressed down
-//   if (buttonVal == LOW && buttonLast == HIGH && (millis() - upTime) > debounce)
-//   {
-//       downTime = millis();
-//       ignoreUp = false;
-//       waitForUp = false;
-//       singleOK = true;
-//       holdEventPast = false;
-//       longHoldEventPast = false;
-//       if ((millis()-upTime) < DCgap && DConUp == false && DCwaiting == true)  DConUp = true;
-//       else  DConUp = false;
-//       DCwaiting = false;
-//   }
-//   // Button released
-//   else if (buttonVal == HIGH && buttonLast == LOW && (millis() - downTime) > debounce)
-//   {        
-//       if (not ignoreUp)
-//       {
-//           upTime = millis();
-//           if (DConUp == false) DCwaiting = true;
-//           else
-//           {
-//               event = 2;
-//               DConUp = false;
-//               DCwaiting = false;
-//               singleOK = false;
-//           }
-//       }
-//   }
-//   // Test for normal click event: DCgap expired
-//   if ( buttonVal == HIGH && (millis()-upTime) >= DCgap && DCwaiting == true && DConUp == false && singleOK == true && event != 2)
-//   {
-//       event = 1;
-//       DCwaiting = false;
-//   }
-//   // Test for hold
-//   if (buttonVal == LOW && (millis() - downTime) >= holdTime) {
-//       // Trigger "normal" hold
-//       if (not holdEventPast)
-//       {
-//           event = 3;
-//           waitForUp = true;
-//           ignoreUp = true;
-//           DConUp = false;
-//           DCwaiting = false;
-//           //downTime = millis();
-//           holdEventPast = true;
-//       }
-//       // Trigger "long" hold
-//       if ((millis() - downTime) >= longHoldTime)
-//       {
-//           if (not longHoldEventPast)
-//           {
-//               event = 4;
-//               longHoldEventPast = true;
-//           }
-//       }
-//   }
-//   buttonLast = buttonVal;
-//   return event;
-//}
+class UI
+{
+  // Implementing multi-click (adapated from salsaman)
+  
+  // Timing values
+  uint8_t debounce = 20;
+  uint16_t DClength = 250;
+  uint16_t holdTime = 1000;
+
+  // Button state
+  boolean buttonVal[MAX_BUTTONS] = HIGH;  // start with pullup
+  boolean buttonLast[MAX_BUTTONS] = HIGH; 
+  boolean DCwaiting[MAX_BUTTONS] = false; //waiting for double click
+  
+}
+
+
 
 
 
