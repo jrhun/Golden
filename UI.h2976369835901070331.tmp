@@ -48,7 +48,6 @@ void toggleButton(buttonPress_t p)
         break;
       case speed : 
         // change speed
-        break;
     }
   }
   // Long press change mode

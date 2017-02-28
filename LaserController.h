@@ -39,6 +39,9 @@ struct laser
     static uint8_t currentBus; // 0 for micro PWM, 1 for i2c bus 0x40, 2 for 0x41
     static const uint8_t maxLaserOnBus[3];
     static const uint8_t PRO_PWM_PINS[5];
+
+    // render variables
+    
 };
 
 class LaserController
