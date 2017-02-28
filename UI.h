@@ -3,6 +3,9 @@
 #define MAX_BUTTONS   3   // NEED TO CHANGE FLAGS FROM UINT8_T to UINT16_t to handle more
 // Generalised class for handling user interface with PCINT library
 
+enum buttonModes = {PATTERN = 0, BRIGHTNESS = 1, SPEED = 2}; 
+buttonModes buttonState = PATTERN;
+
 volatile uint8_t FLAGS = 0;    
                   // 0x1 is Toggle Switch falling, 
                   // 0x2 is Inc button falling
@@ -28,11 +31,35 @@ void (*ISRFunctionsF[MAX_BUTTONS])() = {ISR_toggleButtonF, ISR_incButtonF, ISR_d
 
 // Code to be called when buttons pressed
 void toggleButton()
-  {Serial.print("Toggle button Pressed");}
+{
+  Serial.print("Toggle button Pressed");
+  // Short press Change pattern
+
+  // Long press change mode
+  // Possible modes: pattern (default), brightness, speed. Inditacted by lights
+}
 void incButton()
-  {Serial.print("Inc button Pressed");}
+{
+  Serial.print("Inc button Pressed");
+  // if mode == PATTERN, then increment the pattern
+  switch(buttonState){
+    case PATTERN :
+      // increment pattern
+      break;
+    case BRIGHTNESS :
+      // inc brightness
+      break;
+    case SPEED :
+      // inc speed
+      break;
+  }
+    
+}
 void decButton()
-  {Serial.print("Dec button Pressed");}
+{
+  Serial.print("Dec button Pressed");
+  // if mode == BRIGHTNESS
+}
 void (*buttonFunction[MAX_BUTTONS])() = {toggleButton, incButton, decButton};   //order matters!
 
 //alternative w. double click support

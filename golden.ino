@@ -22,5 +22,5 @@ void loop() {
   controller.render();       // calculate new values
   controller.updateLasers(); // change laser values
   handleUI();
-  delay(100);
+//  delay(100);
 }
