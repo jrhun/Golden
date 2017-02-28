@@ -2,12 +2,13 @@
 
 #include "LaserController.h"
 #include "UI.h"
-// NUM_LASERS defined in LaserController.h
 
-
+// laser controller
 laser lasers[NUM_LASERS];
+LaserController controller(lasers); 
 
-LaserController controller(lasers);
+// UI controller
+UI ui(&controller);
 
 void setup() {
   // put your setup code here, to run once:
