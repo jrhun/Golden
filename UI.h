@@ -52,9 +52,14 @@ class UI
     uint8_t buttonState[MAX_BUTTONS];       // current button state
     
     const unsigned short debounceDelay = 20;
-    const unsigned short holdTime = 700;
-    const unsigned short holdRepeatRate = 300; //repeat command every 300 msec if held
-    unsigned long firstHeld;
+    const unsigned short holdTime[MAX_BUTTONS] = {4000,700,700};
+    const unsigned short repeatRate[MAX_BUTTONS] = {4000,200,200}; //repeat rate different for different buttons
+    // TODO, repeatRate increases if you hold down for longer
+    bool trigger[MAX_BUTTONS] = {true, true, true};
+    unsigned long lastTriggered[MAX_BUTTONS] = {0,0,0};
+//    unsigned long firstHeld = 0;
+//    unsigned long millisHeld[MAX_BUTTONS];
+//    unsigned long prevMillisHeld[MAX_BUTTONS] = {0,0,0};
 };
 
 #endif // UI_H

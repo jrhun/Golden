@@ -63,15 +63,23 @@ void UI::handleUI()
         if (reading == LOW)
         { // triger short press
           (this->*buttonFunctions[i])(shortPress);
-          // start hold timer
-          firstHeld = millis();
         }
       }
-      // If button hasn't changed state, and has been low for >700 msec
-        // start a timer to check if it's still low in 700msec
-      if ( (reading == LOW) and (( millis() - lastDebounceTime[i] ) > holdTime) )
+      // This triggers after a button has been low for > 700msec
+      if ( (reading == LOW) and (( millis() - lastDebounceTime[i] ) > holdTime[i]) )
       {
-        
+        // If trigger is true, repeat function inc
+        if (trigger[i])
+        {
+          (this->*buttonFunctions[i])(longPress);
+          trigger[i] = false;
+          lastTriggered[i] = millis();
+        }
+        // this checks if we have gone past repeatrate
+        if ( (millis() - lastTriggered[i]) > repeatRate[i])
+        {
+          trigger[i] = true; 
+        }
       }
     }
     lastPinValue[i] = reading; // save the reading
@@ -113,12 +121,15 @@ void UI::incButton(buttonPress_t p)
     switch(UIState){
     case pattern :
       // increment pattern
+      controller->incPattern();
       break;
     case brightness :
       // inc brightness
+      controller->incBrightness(5);
       break;
     case speed :
       // inc speed
+      controller->incSpeed(5);
       break;
     }
   } else if (p == longPress)
@@ -135,13 +146,16 @@ void UI::decButton(buttonPress_t p)
     Serial.println("\t(Short press)");
     switch(UIState){
     case pattern :
-      // increment pattern
+      // decrement pattern
+      controller->decPattern();
       break;
     case brightness :
-      // inc brightness
+      // dec brightness
+      controller->decBrightness(5);
       break;
     case speed :
-      // inc speed
+      // dec speed
+      controller->decSpeed(5);
       break;
     }
   } else if (p == longPress)

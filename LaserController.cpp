@@ -79,17 +79,25 @@ void LaserController::setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0)
   }
 }
 
-void LaserController::incBrightness(uint8_t amount=5) {brightnessScale = constrain(brightnessScale + amount, 0, 200);}
-void LaserController::decBrightness(uint8_t amount=5) {brightnessScale = constrain(brightnessScale - amount, 0, 200);}
-void LaserController::incSpeed(uint8_t amount=5) {patternSpeed = constrain(patternSpeed + amount, 0, 200);}
-void LaserController::decSpeed(uint8_t amount=5) {patternSpeed = constrain(patternSpeed - amount, 0, 200);}
+void LaserController::incBrightness(uint8_t amount=5) {
+//  brightnessScale = constrain(brightnessScale + amount, 0, 200);
+  }
+void LaserController::decBrightness(uint8_t amount=5) {
+//  brightnessScale = constrain(brightnessScale - amount, 0, 200);
+  }
+void LaserController::incSpeed(uint8_t amount=5) {
+//  patternSpeed = constrain(patternSpeed + amount, 0, 200);
+  }
+void LaserController::decSpeed(uint8_t amount=5) {
+//  patternSpeed = constrain(patternSpeed - amount, 0, 200);
+  }
 void LaserController::incPattern()
 {
-  ;
+//  Serial.print("Inc Pattern");
 }
 void LaserController::decPattern()
 {
-  ;
+//  Serial.print("Dec Pattern");
 }
 uint8_t LaserController::getValue(uint8_t i)
 {
@@ -128,8 +136,8 @@ void LaserController::updateLasers()
       if (p->fadeTime == 0) {
          // if no fade time, just set new value
         p->value = p->toValue;
-        Serial.print("\tValue: ");
-        Serial.print(p->value);
+//        Serial.print("\tValue: ");
+//        Serial.print(p->value);
         // No need to do the fade calculations 
       } else
       {
@@ -152,8 +160,8 @@ void LaserController::updateLasers()
 
       // Set output for laser
       uint8_t output = float (0.0039216) * p->value * p->value;
-      Serial.print("output");
-      Serial.println(output);
+//      Serial.print("output");
+//      Serial.println(output);
       switch(p->i2cBus)
       {
         case 0:
