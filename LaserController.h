@@ -76,7 +76,7 @@ class LaserController
   
     // render functions
     static uint8_t numFunctions; 
-    static void (*renderFunctions[])();
+    static const void (*renderFunctions[])();
     static uint8_t brightnessScale;       // scale from 0-100
     static uint8_t patternSpeed;          // from 0-200???? default is 100
 };
