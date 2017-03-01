@@ -28,11 +28,9 @@ struct laser
     uint16_t fadeTime;  // Amount of time LEFT in fade in msec
     uint8_t toValue;    // space to hold value to fade to
   
-//    laser(uint8_t ppin=0, uint8_t i2cBus=0, uint8_t value=0);
-  laser(void);
-
-  uint8_t getNumberLasers();
-  
+    laser(void);
+    uint8_t getNumberLasers();
+ 
   private:
     static uint8_t nLasers;
     static uint8_t nextPin;
@@ -43,27 +41,44 @@ struct laser
 
 class LaserController
 {
-  
+//  friend class UI;
   public:
     // Define a laser strip and pass it to lasercontrol to control it easily. 
     LaserController(laser *lasers);
   
-    //Set a laser value and optionally fade time
-    void setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0);
 
-    uint8_t getValue(uint8_t i);
-  
-    // Render values of lasers
-    void render();
+    void setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0);
+      //Set a laser value and optionally fade time
     
-    // update lasers with changes, 
+    uint8_t getValue(uint8_t i);
+      // Return 
+
+    void incBrightness(uint8_t);
+    void decBrightness(uint8_t);
+    void incSpeed(uint8_t);
+    void decSpeed(uint8_t);
+    void incPattern();
+    void decPattern();
+    
+    void render();
+      // Render values of lasers
+    
     void updateLasers();
+      // update lasers with changes, 
+      
   private:
+    // Array values
     laser *m_lasers;    // array with lasers
     int m_nLasers;
     unsigned long lastUpdate;
 //    Adafruit_PWMServoDriver pwm1; //on bus 0x40
 //    Adafruit_PWMServoDriver pwm2; //on bux 0x41
+  
+    // render functions
+    static uint8_t numFunctions; 
+    static const void (*renderFunctions[])();
+    static uint8_t brightnessScale;       // scale from 0-100
+    static uint8_t patternSpeed;          // from 0-200???? default is 100
 };
 
 #endif /* LEDCONTROLLER_H */

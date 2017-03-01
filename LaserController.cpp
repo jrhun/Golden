@@ -1,10 +1,19 @@
 #include "LaserController.h"
 
+// Static variable definitions
+//Laser
 static uint8_t laser::nLasers;
 static uint8_t laser::nextPin = 0;
 static uint8_t laser::currentBus = 0; // 0 for micro PWM, 1 for i2c bus 0x40, 2 for 0x41
 static const uint8_t laser::maxLaserOnBus[3] = {4,16,16};
 static const uint8_t laser::PRO_PWM_PINS[5] = {3,5,6,9,10};
+
+//LaserController
+static const uint8_t numFunctions = 0;
+static const void (*renderFunctions[numFunctions])() = {};
+static uint8_t brightnessScale = 100;
+static uint8_t patternSpeed = 100;
+
 
 laser::laser(void)
       : value(0), fadeTime(0), toValue(0)
@@ -23,65 +32,20 @@ laser::laser(void)
     currentBus += 1;     //chagne to next bus if this one is full
     nextPin = 0;
   }
-//  
-//  Serial.print("\n********************************"
-//               "\n Debug for laser initialisation "
-//               "\n********************************"
-//               "\n\tnLasers: ");
-//  Serial.print(nLasers);
-//  Serial.print("\n\tPin: ");
-//  Serial.print(pin);
-//  Serial.print("\ti2cBus: ");
-//  Serial.print(i2cBus);
-//  Serial.print("\tnextPin: ");
-//  Serial.println(nextPin);
-//  Serial.print("\tMaxLaserOnBus[currentBus(");
-//  Serial.print(currentBus);
-//  Serial.print(")]:    ");
-//  Serial.println(maxLaserOnBus[currentBus]);
 };
-  
-//  if (ppin == 0)
-//  {
-//    // Automattically increment pin if not given
-//    // TODO Make it automatically choose next available PWM pin
-//    //    maybe use an array with the pin numbers, pass the pointer than dereference and increment?
-//    switch(i2cBus)
-//    {
-//      case 0:
-//        pin = ++lastpin_micro; 
-//        pinMode(pin, OUTPUT);
-//        break;
-//      case 1:
-//        pin = ++lastpin_i2c1; // don't need to set mode for i2c shield
-//        break;
-//      case 2:
-//        pin = ++lastpin_i2c2; // don't need to set mode for i2c shield
-//        break;
-//    }
-//  } else
-//  {
-//    pin = ppin;
-//  }
-//};
 
 uint8_t laser::getNumberLasers()
 {
   return nLasers;
 }
 
-//laser:laser& operator+(const int i)
-//{
-//  value = constrain((value + i), 0, 255);
-//  return *this;
-//}
-//laser::laser& operator-(const int i)
-//{
-//  value = constrain((value - i), 0, 255);
-//  return *this;
-//}
+// ********************************
+//  Lasercontroller Implementation
+// ********************************
 
-LaserController::LaserController(laser *lasers)
+// constructor
+LaserController::LaserController(laser *lasers) 
+  : lastUpdate(0)
 { 
   // Pass struct for leds
   m_lasers = lasers;
@@ -115,6 +79,26 @@ void LaserController::setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0)
   }
 }
 
+void LaserController::incBrightness(uint8_t amount=5) {
+//  brightnessScale = constrain(brightnessScale + amount, 0, 200);
+  }
+void LaserController::decBrightness(uint8_t amount=5) {
+//  brightnessScale = constrain(brightnessScale - amount, 0, 200);
+  }
+void LaserController::incSpeed(uint8_t amount=5) {
+//  patternSpeed = constrain(patternSpeed + amount, 0, 200);
+  }
+void LaserController::decSpeed(uint8_t amount=5) {
+//  patternSpeed = constrain(patternSpeed - amount, 0, 200);
+  }
+void LaserController::incPattern()
+{
+//  Serial.print("Inc Pattern");
+}
+void LaserController::decPattern()
+{
+//  Serial.print("Dec Pattern");
+}
 uint8_t LaserController::getValue(uint8_t i)
 {
 //  Serial.print("getValue:\t");
@@ -152,8 +136,8 @@ void LaserController::updateLasers()
       if (p->fadeTime == 0) {
          // if no fade time, just set new value
         p->value = p->toValue;
-        Serial.print("\tValue: ");
-        Serial.print(p->value);
+//        Serial.print("\tValue: ");
+//        Serial.print(p->value);
         // No need to do the fade calculations 
       } else
       {
@@ -176,8 +160,8 @@ void LaserController::updateLasers()
 
       // Set output for laser
       uint8_t output = float (0.0039216) * p->value * p->value;
-      Serial.print("output");
-      Serial.println(output);
+//      Serial.print("output");
+//      Serial.println(output);
       switch(p->i2cBus)
       {
         case 0:

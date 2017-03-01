@@ -2,25 +2,27 @@
 
 #include "LaserController.h"
 #include "UI.h"
-// NUM_LASERS defined in LaserController.h
 
-
+// laser controller
 laser lasers[NUM_LASERS];
+LaserController controller(lasers); 
 
-LaserController controller(lasers);
+// UI controller
+UI ui(&controller);
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   while (!Serial);
+  ui.setupUI();
   Serial.println("Setup Complete");
-  setupUI();
+  
 }
 
 void loop() {
   // Laser control
   controller.render();       // calculate new values
   controller.updateLasers(); // change laser values
-  handleUI();
-  delay(100);
+  ui.handleUI();
+//  delay(100);
 }
