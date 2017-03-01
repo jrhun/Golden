@@ -1,10 +1,10 @@
-#define NUM_LASERS 4
+#define NUM_LASERS 4    // must define before including LaserController (which includes laser state)
 
 #include "LaserController.h"
 #include "UI.h"
 
 // laser controller
-laser lasers[NUM_LASERS];
+laserState lasers[NUM_LASERS];
 LaserController controller(lasers); 
 
 // UI controller
