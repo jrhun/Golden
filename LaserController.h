@@ -55,13 +55,16 @@ class LaserController
     void fadeInOut();
     void randomFlash();
     void fadeTester();
+    void basicFade();
     
     bool newPattern;   // used to initialise pattern, could remove if have classes overiding virtual functions
                               // as initialiser would do the job there
     
     //render function array and control
-    static const uint8_t numPatterns = 4; 
+    static const uint8_t numPatterns = 5; 
     uint8_t currentPattern; 
+    unsigned long counter;
+    bool toggle; // used for patterns
 
     // Global laser controls
     uint8_t brightnessScale;       // scale from 0-100

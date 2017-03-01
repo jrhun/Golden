@@ -88,7 +88,7 @@ void UI::handleUI()
 
 void UI::toggleButton(buttonPress_t p)
 {
-  Serial.print("Toggle button Pressed");
+//  Serial.print("Toggle button Pressed");
   // Short press
   if (p == shortPress)
   {
@@ -96,10 +96,13 @@ void UI::toggleButton(buttonPress_t p)
     switch(UIState) {
       case pattern : 
         UIState = brightness;   break;
+        Serial.print("Brightness Change");
       case brightness :
         UIState = speed;        break;
+        Serial.print("Speed Change");
       case speed : 
         UIState = pattern;      break;
+        Serial.print("Pattern Change");
     }
     Serial.print("\n\tUI State Changed to: ");
     Serial.println(UIState);
@@ -114,10 +117,10 @@ void UI::toggleButton(buttonPress_t p)
 }
 void UI::incButton(buttonPress_t p)
 {
-  Serial.print("Inc button Pressed");
+//  Serial.print("Inc button Pressed");
   if (p == shortPress)
   {
-    Serial.println("\t(Short press)");
+//    Serial.println("\t(Short press)");
     switch(UIState){
     case pattern :
       // increment pattern
@@ -140,10 +143,10 @@ void UI::incButton(buttonPress_t p)
 }
 void UI::decButton(buttonPress_t p)
 {
-  Serial.print("Dec button Pressed");
+//  Serial.print("Dec button Pressed");
   if (p == shortPress)
   {
-    Serial.println("\t(Short press)");
+//    Serial.println("\t(Short press)");
     switch(UIState){
     case pattern :
       // decrement pattern

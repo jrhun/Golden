@@ -6,7 +6,7 @@
 
 // constructor
 LaserController::LaserController(laserState *lasers) 
-  : lastUpdate(0), brightnessScale(100), patternSpeed(100), newPattern(true)
+  : lastUpdate(0), brightnessScale(100), patternSpeed(100), newPattern(true), counter(0), toggle(false)
 { 
   // Pass struct for leds
   m_lasers = lasers;
@@ -48,15 +48,23 @@ uint8_t LaserController::getToValue(uint8_t i)
 
 void LaserController::incBrightness(uint8_t amount=5) {
   brightnessScale = constrain(brightnessScale + amount, 0, 200);
+  Serial.print("Brightness: ");
+  Serial.println(brightnessScale);
 }
 void LaserController::decBrightness(uint8_t amount=5) {
   brightnessScale = constrain(this->brightnessScale - amount, 0, 200);
+  Serial.print("Brightness: ");
+  Serial.println(brightnessScale);
 }
 void LaserController::incSpeed(uint8_t amount=5) {
   patternSpeed = constrain(patternSpeed + amount, 0, 200);
+  Serial.print("Pattern Speed: ");
+  Serial.println(patternSpeed);
 }
 void LaserController::decSpeed(uint8_t amount=5) {
   patternSpeed = constrain(patternSpeed - amount, 0, 200);
+  Serial.print("Pattern Speed: ");
+  Serial.println(patternSpeed);
 }
 void LaserController::incPattern()
 {
@@ -121,6 +129,11 @@ void LaserController::updateLasers()
         else  
           {p->fadeTime -= lastInterval;}
       }
+      if (p->value <= 2)
+      {
+        p->value = 0;
+        p->toValue = 0;
+      }
 
       // Set output for laser
       uint8_t output = float (0.0039216) * p->value * p->value;
@@ -155,27 +168,29 @@ void LaserController::setPattern( uint8_t i )
 
 void LaserController::defaultFunction()
 {
-  uint8_t last = 0;
   for (int i = 0; i < m_nLasers; i++)
   {
     if (newPattern) 
     { 
-      setValue(i, last + 100);
-      last += 100;
-      if (last > 255)
-      {
-        last = 0;
-      }
+      setValue(i, 255);
     }
-    uint8_t setTo = getValue(i) + 10;
-    setTo %= 255; // wrap around at max
-    setValue(i, setTo, 0);
+    if (millis() - counter > 1000)    // if coutner for more than 1000
+    {
+      toggle != toggle;
+      counter = millis();     // reset counter
+    }
+    if (toggle)
+    {
+      setValue(i,255,map(patternSpeed,0,200,50,800));
+    }else if (!toggle)
+    {
+      setValue(i,0,map(patternSpeed,0,200,50,800));
+    }
   }
   if (newPattern) { newPattern = false; }
 }
 void LaserController::fadeInOut()
 {
-  
   for (int i = 0; i < m_nLasers; i++)
   {
     if (newPattern)
@@ -184,8 +199,7 @@ void LaserController::fadeInOut()
 //      m_lasers[i]->fadeTime = 0;
       setValue(i,0,0);
     }
-    laserState *p = &m_lasers[i];
-    if (m_lasers[i].fadeTime == 0)     // if light isn't already changing
+    if (m_lasers[i].fadeTime <= 20)     // if light isn't already changing
     {
       if (getValue(i) == 0)
       {
@@ -204,6 +218,7 @@ void LaserController::randomFlash()
 
   for (int i = 0; i < m_nLasers; i++)
   {
+    //initalise pattern
     if (newPattern) 
     { 
       if (random(0,2) > 0)  // 50/50
@@ -214,6 +229,7 @@ void LaserController::randomFlash()
         setValue(i,random(100,255),0);
       }
     }
+    
     if (getValue(i) != 0 && m_lasers[i].fadeTime == 0 && random(0,200) > 100)
     {
       // if value not zero, and NO FADE TIME, set to zero with random fade
@@ -237,9 +253,31 @@ void LaserController::fadeTester()
       if (newPattern) {setValue(0,255,1000);} 
       else            {setValue(0,0,1000);}
     }
+//    Serial.print(m_lasers[i].fadeTime);
   }
   if (newPattern) {newPattern = false;} 
   else            {newPattern = true;}
+}
+
+void LaserController::basicFade()
+{
+  uint16_t last = 0;
+  for (int i = 0; i < m_nLasers; i++)
+  {
+    if (newPattern) 
+    { 
+      setValue(i, last + 100);
+      last += 100;
+      if (last > 255)
+      {
+        last = 0;
+      }
+    }
+    uint8_t setTo = getValue(i) + 10;
+    setTo %= 255; // wrap around at max
+    setValue(i, setTo, 0);
+  }
+  if (newPattern) { newPattern = false; }
 }
 
 void LaserController::render()
@@ -256,8 +294,13 @@ void LaserController::render()
       break;
     case 2 :
       randomFlash();
+      break;
     case 3 :
-      fadeTester();      
+      fadeTester(); 
+      break;
+    case 4 :
+      basicFade();
+      break;     
   }
 }
 

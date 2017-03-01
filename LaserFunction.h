@@ -2,7 +2,7 @@
 #define LASERFUNCTION_H
 
 #ifndef NUM_LASERS
-#define NUM_LASERS      4
+#define NUM_LASERS      3
 #endif
 
 #include "LaserController.h"
