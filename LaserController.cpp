@@ -171,6 +171,10 @@ void LaserController::setPattern( uint8_t i )
   }
   newPattern = true;
 }
+//uint8_t LaserController::getMode( uint8_t i )
+//{
+//  return currentPattern;
+//}
 
 void LaserController::defaultFunction()
 {

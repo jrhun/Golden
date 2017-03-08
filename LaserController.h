@@ -39,7 +39,7 @@ class LaserController
 
     // Render Function
     void setPattern( uint8_t i);     // set currentFunction 
-//    void getPattern( uint8_t i);
+//    uint8_t getMode(void);
     void render();                    // Render values of lasers
     void updateLasers();              // update lasers with changes, 
     

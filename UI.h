@@ -42,7 +42,7 @@ class UI
       // pointer to each of the button functions (each take a buttonPress variable (shortPress/longPress))
     
     // Pin definitions
-    const uint8_t outputPins[MAX_OUTPUT_LEDS] = {19,20,21};             // output pins for feedback of UIState 
+    const uint8_t outputPins[MAX_OUTPUT_LEDS] = {A1,A2,A3};             // output pins for feedback of UIState 
     const uint8_t inputPins[MAX_BUTTONS] = {18,14,15};    // these all support pin change interrupt on leonardo
     
     // Button related declarations
