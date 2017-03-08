@@ -1,62 +1,22 @@
 #include "LaserController.h"
 
-// Static variable definitions
-//Laser
-static uint8_t laser::nLasers;
-static uint8_t laser::nextPin = 0;
-static uint8_t laser::currentBus = 0; // 0 for micro PWM, 1 for i2c bus 0x40, 2 for 0x41
-static const uint8_t laser::maxLaserOnBus[3] = {4,16,16};
-static const uint8_t laser::PRO_PWM_PINS[5] = {3,5,6,9,10};
-
-//LaserController
-static const uint8_t numFunctions = 0;
-static const void (*renderFunctions[numFunctions])() = {};
-static uint8_t brightnessScale = 100;
-static uint8_t patternSpeed = 100;
-
-
-laser::laser(void)
-      : value(0), fadeTime(0), toValue(0)
-{
-  // automatically allocate new lasers to free pins
-  if (currentBus == 0)
-          { pin = PRO_PWM_PINS[nextPin]; } 
-  else    { pin = nextPin; }
-  
-  i2cBus = currentBus;    // set current bus for this pin
-  nextPin ++;
-  nLasers ++;
-  
-  if (nextPin == maxLaserOnBus[currentBus])
-  {
-    currentBus += 1;     //chagne to next bus if this one is full
-    nextPin = 0;
-  }
-};
-
-uint8_t laser::getNumberLasers()
-{
-  return nLasers;
-}
-
 // ********************************
 //  Lasercontroller Implementation
 // ********************************
 
 // constructor
-LaserController::LaserController(laser *lasers) 
-  : lastUpdate(0)
+LaserController::LaserController(laserState *lasers) 
+  : lastUpdate(0), brightnessScale(100), patternSpeed(100), newPattern(true), counter(0), toggle(false)
 { 
   // Pass struct for leds
   m_lasers = lasers;
   m_nLasers = lasers->getNumberLasers();
-//  lastUpdate = 0;
-//  Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);    // default bus is 0x40
-//  Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);    // default bus is 0x40
+  Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);    // default bus is 0x40
+  Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);    // default bus is 0x40
 //  
 //  // setup pwm I2C output
 //  pwm1.begin();
-//  pwm1.setPWMFreq(1600);
+//  pwm1.setPWMFreq(1000);
 //  pwm2.begin();
 //  pwm2.setPWMFreq(1600);
 //  #ifdef TWBR    
@@ -65,51 +25,75 @@ LaserController::LaserController(laser *lasers)
 //    // must be changed after calling Wire.begin() (inside pwm.begin())
 //    TWBR = 12; // upgrade to 400KHz!
 //  #endif
+
+}
+
+void LaserController::init()
+{
+    pwm1.begin();
+    pwm1.setPWMFreq(1000);
+    pwm2.begin();
+    pwm2.setPWMFreq(1000);
+    // save I2C bitrate
+    uint8_t twbrbackup = TWBR;
+    // must be changed after calling Wire.begin() (inside pwm.begin())
+    TWBR = 12; // upgrade to 400KHz!
 }
 
 void LaserController::setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0)
 {
-  if (i >= 0 && i < m_nLasers)
-  {
-    m_lasers[i].toValue = pvalue;
-    m_lasers[i].fadeTime = fadeTime;
-//    Serial.print("setValue: \t");
-//    Serial.println(m_lasers[i].toValue);
-//    Serial.println(m_lasers[i].value);
-  }
+  m_lasers[i].toValue = pvalue;
+  m_lasers[i].fadeTime = fadeTime;
 }
 
+uint8_t LaserController::getValue(uint8_t i)
+{
+  return m_lasers[i].value;
+}
+
+uint8_t LaserController::getToValue(uint8_t i)
+{
+  return m_lasers[i].value;
+}
+
+
 void LaserController::incBrightness(uint8_t amount=5) {
-//  brightnessScale = constrain(brightnessScale + amount, 0, 200);
-  }
+  brightnessScale = constrain(brightnessScale + amount, 0, 200);
+  Serial.print("Brightness: ");
+  Serial.println(brightnessScale);
+}
 void LaserController::decBrightness(uint8_t amount=5) {
-//  brightnessScale = constrain(brightnessScale - amount, 0, 200);
-  }
+  brightnessScale = constrain(brightnessScale - amount, 0, 200);
+  Serial.print("Brightness: ");
+  Serial.println(brightnessScale);
+}
 void LaserController::incSpeed(uint8_t amount=5) {
-//  patternSpeed = constrain(patternSpeed + amount, 0, 200);
-  }
+  patternSpeed = constrain(patternSpeed + amount, 0, 200);
+  Serial.print("Pattern Speed: ");
+  Serial.println(patternSpeed);
+}
 void LaserController::decSpeed(uint8_t amount=5) {
-//  patternSpeed = constrain(patternSpeed - amount, 0, 200);
-  }
+  patternSpeed = constrain(patternSpeed - amount, 0, 200);
+  Serial.print("Pattern Speed: ");
+  Serial.println(patternSpeed);
+}
 void LaserController::incPattern()
 {
-//  Serial.print("Inc Pattern");
+  currentPattern++;
+  currentPattern %= LaserController::numPatterns;   // wrap around
+  newPattern = true;
+  Serial.print("Current Pattern: ");
+  Serial.println(currentPattern);
 }
 void LaserController::decPattern()
 {
-//  Serial.print("Dec Pattern");
+  if (currentPattern == 0)  {currentPattern = LaserController::numPatterns - 1;} 
+  else                      {currentPattern--;}
+  newPattern = true;
+  Serial.print("Current Pattern: ");
+  Serial.println(currentPattern);
 }
-uint8_t LaserController::getValue(uint8_t i)
-{
-//  Serial.print("getValue:\t");
-//  Serial.print(m_lasers[i].value);
-//  Serial.println(i);
-  if (i >= 0 && i < m_nLasers)
-  {
 
-    return m_lasers[i].value;
-  } else {return 0;}
-}
 
 void LaserController::updateLasers()
 {
@@ -118,18 +102,11 @@ void LaserController::updateLasers()
   {
     for (uint8_t i = 0; i < m_nLasers; i++)
     {
-      laser *p = &m_lasers[i];  // pointer to current Laser
-//      Serial.print("NEXT LOOP!!! m_lasers[");
-//      Serial.print(i);
-//      Serial.print("]\n\ttoValue:");
-//      Serial.print(p->toValue);
-//      Serial.print("\n\tvalue:\t");
-//      Serial.println(p->value);
-      if (p->value == p->toValue)
-      {
-        continue;
-      }
-      
+      laserState *p = &m_lasers[i];  // pointer to current Laser
+//      if (p->value == p->toValue)
+//      {
+//        continue;
+//      }
 //      Serial.print("\tNot equal for i=");
 //      Serial.println(i);
       
@@ -157,24 +134,28 @@ void LaserController::updateLasers()
         else  
           {p->fadeTime -= lastInterval;}
       }
+      if (p->value <= 4)
+      {
+        p->value = 0;
+        p->toValue = 0;
+      }
 
       // Set output for laser
-      uint8_t output = float (0.0039216) * p->value * p->value;
-//      Serial.print("output");
-//      Serial.println(output);
+      uint8_t output = float (0.0039216) * p->value * p->value; // map according to quadratic 
+      output = map(output, 0, 200, 0, brightnessScale);
       switch(p->i2cBus)
       {
         case 0:
           // Set PWM for pin on pro micro 0-255 (8bit)
           analogWrite(p->pin, output);
           break;
-//        case 1:
-//          // The code here scales 0-255 evenly to 0-4095
-//          pwm1.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
-//          break;
-//        case 2:
-//          pwm2.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
-//          break;
+        case 1:
+          // The code here scales 0-255 evenly to 0-4095
+          pwm1.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
+          break;
+        case 2:
+          pwm2.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
+          break;
       }
     }
     // update at the end? is that okay?
@@ -182,17 +163,185 @@ void LaserController::updateLasers()
   }
 }
 
+void LaserController::setPattern( uint8_t i )
+{
+  if (i >= 0 && i < LaserController::numPatterns)
+  {
+    currentPattern = i;
+  }
+  newPattern = true;
+}
+
+void LaserController::defaultFunction()
+{
+  static uint8_t currentLaser = 0;
+  //turn current laser off, turn next laser on
+  static unsigned long lastUpdate = 0;
+  if (newPattern)
+  {
+    for (int i = 0; i < m_nLasers; i++)
+    {
+      setValue(i, 0); // turn lasers off if new pattern
+    }
+    newPattern = false;
+  }
+  
+  if (millis() - lastUpdate > map(patternSpeed,0,200,20,300))
+  {
+    setValue(currentLaser++, 0);    // turn off current laser
+    currentLaser %= m_nLasers;      // wrap around if at 40
+    setValue(currentLaser,255);     // turn on next laser
+    lastUpdate = millis();
+  }
+
+}
+void LaserController::fadeInOut()
+{
+  for (int i = 0; i < m_nLasers; i++)
+  {
+    if (newPattern)
+    {
+      // Initialise
+//      m_lasers[i]->fadeTime = 0;
+      setValue(i,0,0);
+    }
+    if (m_lasers[i].fadeTime <= 20)     // if light isn't already changing
+    {
+      if (getValue(i) == 0)
+      {
+        setValue(i, 255, map(patternSpeed,0,200,100,800));
+      } 
+      else
+      {
+        setValue(i, 0, map(patternSpeed,0,200,100,800));
+      }
+    }
+  }
+  if (newPattern) { newPattern = false; }
+}
+void LaserController::randomFlash()
+{
+
+  for (int i = 0; i < m_nLasers; i++)
+  {
+    //initalise pattern
+    if (newPattern) 
+    { 
+      if (random(0,2) > 0)  // 50/50
+      {
+        setValue(i,0,0);
+      } else 
+      {
+        setValue(i,random(100,255),0);
+      }
+    }
+    
+    if (getValue(i) != 0 && m_lasers[i].fadeTime == 0 && random(0,200) > 100)
+    {
+      // if value not zero, and NO FADE TIME, set to zero with random fade
+      setValue(i,0, random(map(patternSpeed,0,200,50,600)));
+    }
+    if (getValue(i) == 0 && random(0,200) > 100)
+    {
+      // if value is zero
+      setValue(i,random(100,255),0);
+    }
+  }
+  if (newPattern) { newPattern = false; }
+}
+
+void LaserController::fadeTester()
+{
+  for (int i = 0; i < m_nLasers; i++)
+  {
+    if (m_lasers[i].fadeTime == 0)
+    {
+      if (newPattern) {setValue(0,255,1000);} 
+      else            {setValue(0,0,1000);}
+    }
+//    Serial.print(m_lasers[i].fadeTime);
+  }
+  if (newPattern) {newPattern = false;} 
+  else            {newPattern = true;}
+}
+
+void LaserController::basicFade()
+{
+  uint16_t last = 0;
+  for (int i = 0; i < m_nLasers; i++)
+  {
+    if (newPattern) 
+    { 
+      setValue(i, last + 100);
+      last += 100;
+      if (last > 255)
+      {
+        last = 0;
+      }
+    }
+    uint8_t setTo = getValue(i) + 10;
+    setTo %= 255; // wrap around at max
+    setValue(i, setTo, 0);
+  }
+  if (newPattern) { newPattern = false; }
+}
+
+void LaserController::lineSpin(){
+  static unsigned long lastUpdate = 0;
+  if (newPattern)
+  {
+    for (int i = 0; i < m_nLasers; i++)
+    {
+      setValue(i, 0); // turn lasers off if new pattern
+    }
+    newPattern = false;
+  }
+
+  static uint8_t currentCol = 0;
+  
+  if (millis() - lastUpdate > map(patternSpeed,0,200,20,300))
+  {
+    for (uint8_t i = 0; i < m_nLasers; i++)
+    {
+      if (i % 10 == currentCol)
+      { setValue(i,255); } 
+      else 
+      { setValue(i,0); }
+      
+    }
+    currentCol = (currentCol + 1) % 10;
+  }
+}
+
 void LaserController::render()
 {
   // called every 1000/FPS seconds, default is 50msec
-  
-  
-  uint8_t setTo = getValue(0) + 10;
-  setTo %= 255; // wrap around at max
-  setValue(0, setTo);
-  setValue(1, 50);
-  setValue(2, 200);
-//  Serial.print("Render\n. setTo value:\t");
-//  Serial.println(setTo); 
+  // Call the currently selected function
+  switch (currentPattern)
+  {
+    case 0 :
+      defaultFunction();
+      break;
+    case 1 :
+      fadeInOut();
+      break;
+    case 2 :
+      randomFlash();
+      break;
+    case 3 :
+      fadeTester(); 
+      break;
+    case 4 :
+      basicFade();
+      break;     
+    case 5 :
+      lineSpin();
+  }
+//  switch (currentPattern)
+//  {
+//    case 0;
+//      
+//  }
 }
+
 
