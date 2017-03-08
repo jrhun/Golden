@@ -42,8 +42,8 @@ class UI
       // pointer to each of the button functions (each take a buttonPress variable (shortPress/longPress))
     
     // Pin definitions
-    const uint8_t outputPins[MAX_OUTPUT_LEDS] = {18,19,20};             // output pins for feedback of UIState 
-    const uint8_t inputPins[MAX_BUTTONS] = {14,15,16};    // these all support pin change interrupt on leonardo
+    const uint8_t outputPins[MAX_OUTPUT_LEDS] = {19,20,21};             // output pins for feedback of UIState 
+    const uint8_t inputPins[MAX_BUTTONS] = {18,14,15};    // these all support pin change interrupt on leonardo
     
     // Button related declarations
     unsigned long lastDebounceTime[MAX_BUTTONS];  //used to debounce buttons. last time pin output toggled

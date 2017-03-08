@@ -17,6 +17,8 @@ class LaserController
   public:
     // Define a laser strip and pass it to lasercontrol to control it easily. 
     LaserController(laserState *lasers);
+
+    void init();
     
     void setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0);
       //Set a laser value and optionally fade time
@@ -47,8 +49,8 @@ class LaserController
     laserState *m_lasers;    // array with lasers
     int m_nLasers;
     unsigned long lastUpdate;
-//    Adafruit_PWMServoDriver pwm1; //on bus 0x40
-//    Adafruit_PWMServoDriver pwm2; //on bux 0x41
+    Adafruit_PWMServoDriver pwm1; //on bus 0x40
+    Adafruit_PWMServoDriver pwm2; //on bux 0x41
 
     // render functions
     void defaultFunction();
@@ -56,12 +58,15 @@ class LaserController
     void randomFlash();
     void fadeTester();
     void basicFade();
+    void lineSpin();
+
+    // other render
     
     bool newPattern;   // used to initialise pattern, could remove if have classes overiding virtual functions
                               // as initialiser would do the job there
     
     //render function array and control
-    static const uint8_t numPatterns = 5; 
+    static const uint8_t numPatterns = 6; 
     uint8_t currentPattern; 
     unsigned long counter;
     bool toggle; // used for patterns

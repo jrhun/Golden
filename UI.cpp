@@ -94,15 +94,24 @@ void UI::toggleButton(buttonPress_t p)
   {
     // change UIState
     switch(UIState) {
+      // LEDS 19 (pattern) LED 20 (brightness) LED 21 Speed
       case pattern : 
         UIState = brightness;   break;
         Serial.print("Brightness Change");
+        // Turn off pattern led, turn on brightness led
+        digitalWrite(19, LOW);
+        digitalWrite(20, HIGH);
+          
       case brightness :
         UIState = speed;        break;
         Serial.print("Speed Change");
+        digitalWrite(20, LOW);
+        digitalWrite(21, HIGH);
       case speed : 
         UIState = pattern;      break;
         Serial.print("Pattern Change");
+        digitalWrite(21, LOW);
+        digitalWrite(19, HIGH);
     }
     Serial.print("\n\tUI State Changed to: ");
     Serial.println(UIState);
@@ -139,6 +148,20 @@ void UI::incButton(buttonPress_t p)
   {
     // long press
     Serial.println("\t(Long press)");
+    switch(UIState){
+      case pattern :
+        // increment pattern
+        controller->incPattern();
+        break;
+      case brightness :
+        // inc brightness
+        controller->incBrightness(5);
+        break;
+      case speed :
+        // inc speed
+        controller->incSpeed(5);
+        break;
+    }
   }
 }
 void UI::decButton(buttonPress_t p)
@@ -165,5 +188,19 @@ void UI::decButton(buttonPress_t p)
   {
     // long press
     Serial.println("\t(Long press)");
+    switch(UIState){
+    case pattern :
+      // decrement pattern
+      controller->decPattern();
+      break;
+    case brightness :
+      // dec brightness
+      controller->decBrightness(5);
+      break;
+    case speed :
+      // dec speed
+      controller->decSpeed(5);
+      break;
+    }
   }
 }
