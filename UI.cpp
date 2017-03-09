@@ -136,6 +136,7 @@ void UI::toggleButton(buttonPress_t p)
   {
     // do something fun. Maybe default/reset/lasers on&off?
     Serial.println("\tToggle long Press");
+    controller->toggleLEDS();
   }
 }
 void UI::incButton(buttonPress_t p)
@@ -169,11 +170,11 @@ void UI::incButton(buttonPress_t p)
         break;
       case brightness :
         // inc brightness
-        controller->incBrightness(15);
+        controller->incBrightness(10);
         break;
       case speed :
         // inc speed
-        controller->incSpeed(15);
+        controller->incSpeed(10);
         break;
     }
   }
@@ -209,11 +210,11 @@ void UI::decButton(buttonPress_t p)
       break;
     case brightness :
       // dec brightness
-      controller->decBrightness(15);
+      controller->decBrightness(10);
       break;
     case speed :
       // dec speed
-      controller->decSpeed(15);
+      controller->decSpeed(10);
       break;
     }
   }

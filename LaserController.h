@@ -55,7 +55,8 @@ class LaserController
 //    uint8_t getMode(void);
     void render();                    // Render values of lasers
     void updateLasers();              // update lasers with changes, 
-    
+    void newLastUpdate();
+    void toggleLEDS();
     
   private:
     // variables to be initialised
@@ -64,6 +65,7 @@ class LaserController
     unsigned long lastUpdate;
     Adafruit_PWMServoDriver* pwm1; //on bus 0x40
     Adafruit_PWMServoDriver* pwm2; //on bux 0x41
+    bool ledsOn; 
     
     CRGB *leds;
     uint8_t nLeds;
