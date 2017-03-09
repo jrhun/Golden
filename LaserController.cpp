@@ -5,39 +5,40 @@
 // ********************************
 
 // constructor
-LaserController::LaserController(laserState *lasers) 
+LaserController::LaserController(laserState *lasers, Adafruit_PWMServoDriver* p1, Adafruit_PWMServoDriver* p2, CRGB *l, uint8_t numLeds) 
   : lastUpdate(0), brightnessScale(100), patternSpeed(100), newPattern(true), counter(0), toggle(false)
 { 
   // Pass struct for leds
   m_lasers = lasers;
   m_nLasers = lasers->getNumberLasers();
-  Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);    // default bus is 0x40
-  Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);    // default bus is 0x40
-//  
-//  // setup pwm I2C output
-//  pwm1.begin();
-//  pwm1.setPWMFreq(1000);
-//  pwm2.begin();
-//  pwm2.setPWMFreq(1600);
-//  #ifdef TWBR    
-//    // save I2C bitrate
-//    uint8_t twbrbackup = TWBR;
-//    // must be changed after calling Wire.begin() (inside pwm.begin())
-//    TWBR = 12; // upgrade to 400KHz!
-//  #endif
 
+  pwm1 = p1;
+  pwm2 = p2;
+}
+LaserController::LaserController(laserState *lasers, Adafruit_PWMServoDriver* p1, Adafruit_PWMServoDriver* p2) 
+  : lastUpdate(0), brightnessScale(100), patternSpeed(100), newPattern(true), counter(0), toggle(false)
+{ 
+  // Pass struct for leds
+  m_lasers = lasers;
+  m_nLasers = lasers->getNumberLasers();
+
+  pwm1 = p1;
+  pwm2 = p2;
 }
 
 void LaserController::init()
 {
-    pwm1.begin();
-    pwm1.setPWMFreq(1000);
-    pwm2.begin();
-    pwm2.setPWMFreq(1000);
-    // save I2C bitrate
-    uint8_t twbrbackup = TWBR;
-    // must be changed after calling Wire.begin() (inside pwm.begin())
-    TWBR = 12; // upgrade to 400KHz!
+  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds,NUM_LEDS).setCorrection( TypicalSMD5050 );
+  FastLED.setBrightness( BRIGHTNESS );
+  FastLED.setTemperature( TEMPERATURE );
+//  pwm1.begin();
+//  pwm1.setPWMFreq(1600);
+//  pwm2.begin();
+//  pwm2.setPWMFreq(1600);
+  // save I2C bitrate
+//  uint8_t twbrbackup = TWBR;
+//  // must be changed after calling Wire.begin() (inside pwm.begin())
+//  TWBR = 12; // upgrade to 400KHz!
 }
 
 void LaserController::setValue(uint8_t i, uint8_t pvalue, uint16_t fadeTime=0)
@@ -100,6 +101,8 @@ void LaserController::updateLasers()
   unsigned long lastInterval = millis() - lastUpdate;      //essetnailly currentMillis - lastUpdate
   if (lastInterval >= (1000/FPS))
   {
+    static uint8_t starthue = 0;
+    fill_rainbow( leds, nLeds, --starthue, 20);
     for (uint8_t i = 0; i < m_nLasers; i++)
     {
       laserState *p = &m_lasers[i];  // pointer to current Laser
@@ -142,7 +145,7 @@ void LaserController::updateLasers()
 
       // Set output for laser
       uint8_t output = float (0.0039216) * p->value * p->value; // map according to quadratic 
-      output = map(output, 0, 200, 0, brightnessScale);
+      output = constrain(output, 0, brightnessScale);
       switch(p->i2cBus)
       {
         case 0:
@@ -151,15 +154,25 @@ void LaserController::updateLasers()
           break;
         case 1:
           // The code here scales 0-255 evenly to 0-4095
-          pwm1.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
+          pwm1->setPin(p->pin, (p->value << 4 | p->value >> 4), false);
           break;
         case 2:
-          pwm2.setPWM(p->pin, 0, (p->value << 4 | p->value >> 4));
+//          Serial.print("OUTPIN PWM2: ");
+//          Serial.println(p->value);
+          pwm2->setPin(p->pin, (p->value << 4 | p->value >> 4), false);
           break;
       }
+
+      // FastLED code
+//      if (i < 10 && p->value > 10)
+//      {
+//        leds[i].maximizeBrightness();
+//        leds[i] %= 192;
+//      }
     }
     // update at the end? is that okay?
-    lastUpdate = millis(); 
+    lastUpdate = millis();
+    FastLED.show(); 
   }
 }
 
@@ -190,14 +203,17 @@ void LaserController::defaultFunction()
     newPattern = false;
   }
   
-  if (millis() - lastUpdate > map(patternSpeed,0,200,20,300))
+  if (millis() - lastUpdate > map(patternSpeed,0,200,400,20))
   {
     setValue(currentLaser++, 0);    // turn off current laser
     currentLaser %= m_nLasers;      // wrap around if at 40
     setValue(currentLaser,255);     // turn on next laser
+//    Serial.print("Current Laser: ");
+//    Serial.print(currentLaser);
+//    Serial.print("NumLasers");
+//    Serial.println(m_nLasers);
     lastUpdate = millis();
-  }
-
+  }  
 }
 void LaserController::fadeInOut()
 {
@@ -243,9 +259,9 @@ void LaserController::randomFlash()
     if (getValue(i) != 0 && m_lasers[i].fadeTime == 0 && random(0,200) > 100)
     {
       // if value not zero, and NO FADE TIME, set to zero with random fade
-      setValue(i,0, random(map(patternSpeed,0,200,50,600)));
+      setValue(i,0, random(map(patternSpeed,0,200,500,60)));
     }
-    if (getValue(i) == 0 && random(0,200) > 100)
+    if (getValue(i) == 0 && random(0,200) > map(patternSpeed,0,200,120,40));
     {
       // if value is zero
       setValue(i,random(100,255),0);
@@ -256,6 +272,12 @@ void LaserController::randomFlash()
 
 void LaserController::fadeTester()
 {
+  if (newPattern)
+  {
+    
+    newPattern = false;
+  }
+  
   for (int i = 0; i < m_nLasers; i++)
   {
     if (m_lasers[i].fadeTime == 0)
@@ -265,8 +287,6 @@ void LaserController::fadeTester()
     }
 //    Serial.print(m_lasers[i].fadeTime);
   }
-  if (newPattern) {newPattern = false;} 
-  else            {newPattern = true;}
 }
 
 void LaserController::basicFade()
