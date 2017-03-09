@@ -7,6 +7,18 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "LaserState.h"
+#include <FastLED.h>
+
+#define LED_PIN    16
+
+// Information about the LED strip itself
+#define NUM_LEDS    10
+#define CHIPSET     WS2812B
+#define COLOR_ORDER GRB
+
+
+#define BRIGHTNESS  64
+#define TEMPERATURE OvercastSky
 
 #define FPS             20
 
@@ -16,7 +28,8 @@ class LaserController
 //  friend class UI;
   public:
     // Define a laser strip and pass it to lasercontrol to control it easily. 
-    LaserController(laserState *lasers);
+    LaserController(laserState *lasers, Adafruit_PWMServoDriver* p1, Adafruit_PWMServoDriver* p2, CRGB *l, uint8_t numLeds);
+    LaserController(laserState *lasers, Adafruit_PWMServoDriver* p1, Adafruit_PWMServoDriver* p2);
 
     void init();
     
@@ -39,7 +52,7 @@ class LaserController
 
     // Render Function
     void setPattern( uint8_t i);     // set currentFunction 
-//    void getPattern( uint8_t i);
+//    uint8_t getMode(void);
     void render();                    // Render values of lasers
     void updateLasers();              // update lasers with changes, 
     
@@ -49,8 +62,11 @@ class LaserController
     laserState *m_lasers;    // array with lasers
     int m_nLasers;
     unsigned long lastUpdate;
-    Adafruit_PWMServoDriver pwm1; //on bus 0x40
-    Adafruit_PWMServoDriver pwm2; //on bux 0x41
+    Adafruit_PWMServoDriver* pwm1; //on bus 0x40
+    Adafruit_PWMServoDriver* pwm2; //on bux 0x41
+    
+    CRGB *leds;
+    uint8_t nLeds;
 
     // render functions
     void defaultFunction();

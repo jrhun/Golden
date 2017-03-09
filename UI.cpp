@@ -29,13 +29,27 @@ void UI::setupUI()
   for (uint8_t i = 0; i < MAX_OUTPUT_LEDS; i++)
   {
     pinMode(outputPins[i], OUTPUT);
+    digitalWrite(outputPins[i], LOW);
   }
 }
 
 void UI::handleUI()
 {
-  // TODO Stop jitter (i.e. don't repress if within 20msec)
+  // TODO Stop jitter (i.e. don't repress if within 20msec) DONE
   // TODO repress inc and dec buttons keep firing after a period of time (700msec, sends button down every 200msec?)
+    //DONE
+
+  //setup indictor lights
+  for (uint8_t i = 0; i < MAX_OUTPUT_LEDS; i++)
+  {
+    if (UIState == i){
+      digitalWrite(outputPins[i], HIGH);  
+    }
+    else {
+      digitalWrite(outputPins[i], LOW);
+    }
+    
+  }
 
   // for each button
   for (uint8_t i = 0; i < MAX_BUTTONS; i++)
@@ -99,19 +113,19 @@ void UI::toggleButton(buttonPress_t p)
         UIState = brightness;   break;
         Serial.print("Brightness Change");
         // Turn off pattern led, turn on brightness led
-        digitalWrite(19, LOW);
-        digitalWrite(20, HIGH);
+//        digitalWrite(19, LOW);
+//        digitalWrite(20, HIGH);
           
       case brightness :
         UIState = speed;        break;
         Serial.print("Speed Change");
-        digitalWrite(20, LOW);
-        digitalWrite(21, HIGH);
+//        digitalWrite(20, LOW);
+//        digitalWrite(21, HIGH);
       case speed : 
         UIState = pattern;      break;
         Serial.print("Pattern Change");
-        digitalWrite(21, LOW);
-        digitalWrite(19, HIGH);
+//        digitalWrite(21, LOW);
+//        digitalWrite(19, HIGH);
     }
     Serial.print("\n\tUI State Changed to: ");
     Serial.println(UIState);
@@ -155,11 +169,11 @@ void UI::incButton(buttonPress_t p)
         break;
       case brightness :
         // inc brightness
-        controller->incBrightness(5);
+        controller->incBrightness(15);
         break;
       case speed :
         // inc speed
-        controller->incSpeed(5);
+        controller->incSpeed(15);
         break;
     }
   }
@@ -195,11 +209,11 @@ void UI::decButton(buttonPress_t p)
       break;
     case brightness :
       // dec brightness
-      controller->decBrightness(5);
+      controller->decBrightness(15);
       break;
     case speed :
       // dec speed
-      controller->decSpeed(5);
+      controller->decSpeed(15);
       break;
     }
   }
