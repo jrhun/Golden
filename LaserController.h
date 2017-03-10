@@ -77,6 +77,7 @@ class LaserController
     void fadeTester();
     void basicFade();
     void lineSpin();
+    void levels();
 
     // other render
     
@@ -84,7 +85,7 @@ class LaserController
                               // as initialiser would do the job there
     
     //render function array and control
-    static const uint8_t numPatterns = 6; 
+    static const uint8_t numPatterns = 7; 
     uint8_t currentPattern; 
     unsigned long counter;
     bool toggle; // used for patterns

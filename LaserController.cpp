@@ -191,8 +191,11 @@ void LaserController::setPattern( uint8_t i )
 
 void LaserController::defaultFunction()
 {
+  //Step through each laser, turning them on then off in sequence
+
+  
   static uint8_t currentLaser = 0;
-  //turn current laser off, turn next laser on
+  
   static unsigned long lastUpdate = 0;
   if (newPattern)
   {
@@ -247,6 +250,7 @@ void LaserController::randomFlash()
     //initalise pattern
     if (newPattern) 
     { 
+      newPattern = false;
       if (random(0,2) > 0)  // 50/50
       {
         setValue(i,0,0);
@@ -267,17 +271,14 @@ void LaserController::randomFlash()
       setValue(i,random(100,255),0);
     }
   }
-  if (newPattern) { newPattern = false; }
 }
 
 void LaserController::fadeTester()
 {
   if (newPattern)
   {
-    
     newPattern = false;
   }
-  
   for (int i = 0; i < m_nLasers; i++)
   {
     if (m_lasers[i].fadeTime == 0)
@@ -285,7 +286,6 @@ void LaserController::fadeTester()
       if (newPattern) {setValue(0,255,1000);} 
       else            {setValue(0,0,1000);}
     }
-//    Serial.print(m_lasers[i].fadeTime);
   }
 }
 
@@ -322,7 +322,7 @@ void LaserController::lineSpin(){
   }
 
   static uint8_t currentCol = 0;
-  
+  // TODO centralise patternSpeed to be FPS (between 20msec - 300 msec?)
   if (millis() - lastUpdate > map(patternSpeed,0,200,20,300))
   {
     for (uint8_t i = 0; i < m_nLasers; i++)
@@ -333,8 +333,14 @@ void LaserController::lineSpin(){
       { setValue(i,0); }
       
     }
-    currentCol = (currentCol + 1) % 10;
+    currentCol++
+    currentCol %= 10; //only have 10 colums
   }
+}
+
+void LaserController::levels()
+{
+  
 }
 
 void LaserController::render()
@@ -360,6 +366,8 @@ void LaserController::render()
       break;     
     case 5 :
       lineSpin();
+    case 6 :
+      levels();
   }
 //  switch (currentPattern)
 //  {
